@@ -1,23 +1,19 @@
-import { Fragment, useState } from "react";
-import { Dialog, Transition } from "@headlessui/react";
-import { CheckIcon } from "@heroicons/react/24/outline";
+import { Dialog } from "@headlessui/react";
 import { motion } from "framer-motion";
 
 type ModalProps = {
-  open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
   children: React.ReactNode;
 };
 
-const Modal = ({ open, setOpen, children }: ModalProps) => {
+const Modal = ({ setOpen, children }: ModalProps) => {
   return (
-    // <Transition.Root show={open} as={Fragment}>
-    <Dialog as="div" className="relative z-10" onClose={setOpen} open={open}>
+    <Dialog as="div" className="relative z-10" onClose={setOpen} open={true}>
       <motion.div
         initial={{ opacity: 0 }}
         animate={{
           opacity: 1,
-          transition: { duration: 0.15, ease: "circOut" },
+          transition: { duration: 0.13, ease: "circOut" },
         }}
         exit={{ opacity: 0, transition: { duration: 0.15, ease: "circIn" } }}
         className="fixed inset-0 bg-black bg-opacity-30"

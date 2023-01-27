@@ -4,11 +4,10 @@ import { signIn, getProviders } from "next-auth/react";
 import { useQuery } from "@tanstack/react-query";
 
 type SignInModalProps = {
-  open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-const SignInModal = ({ open, setOpen }: SignInModalProps) => {
+const SignInModal = ({ setOpen }: SignInModalProps) => {
   const { data, isLoading } = useQuery({
     queryKey: ["getProviders"],
     queryFn: () => getProviders(),
@@ -16,7 +15,7 @@ const SignInModal = ({ open, setOpen }: SignInModalProps) => {
 
   return (
     <>
-      <Modal open={open} setOpen={setOpen}>
+      <Modal setOpen={setOpen}>
         <div className="flex flex-col items-center">
           {data &&
             Object.values(data).map((provider) => (
