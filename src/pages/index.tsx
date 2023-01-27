@@ -65,7 +65,7 @@ const AuthShowcase: React.FC = () => {
         </button>
       </div>
       <AnimatePresence>
-        {showModal && <SignInModal open={showModal} setOpen={setShowModal} />}
+        {showModal && <SignInModal setOpen={setShowModal} />}
       </AnimatePresence>
     </>
   );
