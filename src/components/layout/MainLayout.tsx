@@ -1,5 +1,5 @@
 import React from "react";
-import SideNav from "./sidenav";
+import SideNav from "./SideNav";
 import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
 
