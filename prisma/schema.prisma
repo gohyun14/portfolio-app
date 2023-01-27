@@ -21,6 +21,18 @@ model Example {
     updatedAt DateTime @updatedAt
 }
 
+// model AssetBalance {
+//     id      String @id @default(cuid())
+//     userId  String
+//     user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+//     assetId String
+//     amount  Float
+
+//     @@index([userId])
+// }
+
+// model AssetTransaction {}
+
 // Necessary for Next auth
 model Account {
     id                String  @id @default(cuid())
@@ -59,6 +71,7 @@ model User {
     image         String?
     accounts      Account[]
     sessions      Session[]
+    // AssetBalance  AssetBalance[]
 }
 
 model VerificationToken {
