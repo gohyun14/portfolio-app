@@ -13,9 +13,9 @@ const Modal = ({ setOpen, children }: ModalProps) => {
         initial={{ opacity: 0 }}
         animate={{
           opacity: 1,
-          transition: { duration: 0.13, ease: "circOut" },
+          transition: { duration: 0.12, ease: "circOut" },
         }}
-        exit={{ opacity: 0, transition: { duration: 0.15, ease: "circIn" } }}
+        exit={{ opacity: 0, transition: { duration: 0.14, ease: "circIn" } }}
         className="fixed inset-0 bg-black bg-opacity-30"
       />
 
@@ -28,14 +28,14 @@ const Modal = ({ setOpen, children }: ModalProps) => {
               opacity: 1,
               scale: 1,
               y: 0,
-              transition: { duration: 0.13, ease: "circOut" },
+              transition: { duration: 0.12, ease: "circOut" },
             }}
             exit={{
               opacity: 0,
               scale: 0,
-              transition: { duration: 0.15, ease: "circIn" },
+              transition: { duration: 0.14, ease: "circIn" },
             }}
-            className="relative transform overflow-hidden rounded-lg bg-white px-4 pt-5 pb-4 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-sm sm:p-6"
+            className="relative overflow-hidden rounded-lg bg-white px-4 pt-5 pb-4 text-left shadow-xl transition-all sm:my-8 sm:w-fit sm:p-6"
           >
             {children}
           </Dialog.Panel>
