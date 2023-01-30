@@ -1,12 +1,11 @@
 import { useState, useEffect } from "react";
-import { useDebounce } from "usehooks-ts";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AnimatePresence, motion } from "framer-motion";
 
 import Modal from "@/components/UI/Modal";
-import Autocomplete from "../UI/Autocomplete";
+import AutocompleteAsset from "../UI/AutocompleteAsset";
 
 const FormSchema = z.object({
   assetType: z.enum(["STOCK", "CRYPTO"], {
@@ -32,9 +31,17 @@ type AddAssetModalProps = {
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
+export type SearchAssetType = {
+  symbol: string;
+  name: string;
+};
+
 const AddAssetModal = ({ setOpen }: AddAssetModalProps) => {
-  // const [searchValue, setSearchalue] = useState<string>("");
-  // const debouncedValue = useDebounce<string>(searchValue, 500);
+  const [selectedAsset, setSelectedAsset] = useState<SearchAssetType>({
+    symbol: "",
+    name: "",
+  });
+
   const {
     register,
     handleSubmit,
@@ -220,8 +227,10 @@ const AddAssetModal = ({ setOpen }: AddAssetModalProps) => {
                     </AnimatePresence>
                   </div>
 
-                  <Autocomplete />
-                  
+                  <AutocompleteAsset
+                    selected={selectedAsset}
+                    setSelected={setSelectedAsset}
+                  />
                 </div>
               </div>
             </div>
