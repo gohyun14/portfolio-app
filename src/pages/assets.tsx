@@ -4,9 +4,9 @@ import Head from "next/head";
 import { AnimatePresence } from "framer-motion";
 
 import { api } from "../utils/api";
-import AddAssetModal from "@/components/portfolio/AddAssetModal";
+import AddAssetModal from "@/components/assets/AddAssetModal";
 
-const Portfolio: NextPage = () => {
+const Assets: NextPage = () => {
   // const hello = api.example.hello.useQuery(
   //   { text: "from tRPC" },
   //   { refetchOnWindowFocus: false }
@@ -16,8 +16,8 @@ const Portfolio: NextPage = () => {
   return (
     <>
       <Head>
-        <title>Portfolio</title>
-        <meta name="description" content="Portfolio Page" />
+        <title>Assets</title>
+        <meta name="description" content="Your Assers" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="flex min-h-screen flex-col items-center justify-center">
@@ -31,4 +31,4 @@ const Portfolio: NextPage = () => {
   );
 };
 
-export default Portfolio;
+export default Assets;

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AnimatePresence, motion } from "framer-motion";
@@ -11,9 +11,13 @@ const FormSchema = z.object({
   assetType: z.enum(["STOCK", "CRYPTO"], {
     invalid_type_error: "Asset type is required.",
   }),
-  assedId: z
-    .string({ invalid_type_error: "Name is required." })
-    .min(1, { message: "Name is required." }),
+  // assetId: z
+  //   .string({ invalid_type_error: "Name is required." })
+  //   .min(1, { message: "Name is required." }),
+  assetId: z.object({
+    symbol: z.string({ invalid_type_error: "Asset is required." }),
+    name: z.string({ invalid_type_error: "Asset is required." }),
+  }),
   amount: z
     .number({
       invalid_type_error: "Amount is required.",
@@ -21,9 +25,14 @@ const FormSchema = z.object({
     .gt(0, { message: "Must be greater than 0." }),
 });
 
-type FormSchemaType = {
+export type SearchAssetType = {
+  symbol: string;
+  name: string;
+};
+
+export type FormSchemaType = {
   assetType: "STOCK" | "CRYPTO" | "";
-  assedId: string;
+  assetId: SearchAssetType;
   amount: number | undefined;
 };
 
@@ -31,28 +40,19 @@ type AddAssetModalProps = {
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-export type SearchAssetType = {
-  symbol: string;
-  name: string;
-};
-
 const AddAssetModal = ({ setOpen }: AddAssetModalProps) => {
-  const [selectedAsset, setSelectedAsset] = useState<SearchAssetType>({
-    symbol: "",
-    name: "",
-  });
-
   const {
     register,
     handleSubmit,
     formState: { errors },
+    control,
   } = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
   });
 
   const [formData, setFormData] = useState<FormSchemaType>({
     assetType: "",
-    assedId: "",
+    assetId: { symbol: "", name: "" },
     amount: undefined,
   });
 
@@ -97,6 +97,7 @@ const AddAssetModal = ({ setOpen }: AddAssetModalProps) => {
                       type="radio"
                       value="STOCK"
                       className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                      disabled
                       {...register("assetType", { required: true })}
                     />
                     <label
@@ -129,7 +130,7 @@ const AddAssetModal = ({ setOpen }: AddAssetModalProps) => {
                       animate={{
                         opacity: 1,
                         height: "auto",
-                        transition: { duration: 0.15 },
+                        transition: { duration: 0.1 },
                       }}
                       exit={{
                         height: 0,
@@ -156,21 +157,19 @@ const AddAssetModal = ({ setOpen }: AddAssetModalProps) => {
                         The symbol/ticker of the asset.
                       </p>
                     </label>
-                    <input
-                      type="text"
-                      id="assetId"
-                      defaultValue={formData.assedId}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                      {...register("assedId", { required: true })}
+                    <Controller
+                      control={control}
+                      name="assetId"
+                      render={({ field }) => <AutocompleteAsset {...field} />}
                     />
                     <AnimatePresence>
-                      {errors.assedId && (
+                      {errors.assetId && (
                         <motion.div
                           initial={{ height: 0, opacity: 0 }}
                           animate={{
                             opacity: 1,
                             height: "auto",
-                            transition: { duration: 0.15 },
+                            transition: { duration: 0.1 },
                           }}
                           exit={{
                             height: 0,
@@ -179,7 +178,7 @@ const AddAssetModal = ({ setOpen }: AddAssetModalProps) => {
                           }}
                           className="mt-[2px] text-xs text-red-600"
                         >
-                          {errors.assedId.message}
+                          {errors.assetId.message}
                         </motion.div>
                       )}
                     </AnimatePresence>
@@ -212,7 +211,7 @@ const AddAssetModal = ({ setOpen }: AddAssetModalProps) => {
                           animate={{
                             opacity: 1,
                             height: "auto",
-                            transition: { duration: 0.15 },
+                            transition: { duration: 0.1 },
                           }}
                           exit={{
                             height: 0,
@@ -226,11 +225,6 @@ const AddAssetModal = ({ setOpen }: AddAssetModalProps) => {
                       )}
                     </AnimatePresence>
                   </div>
-
-                  <AutocompleteAsset
-                    selected={selectedAsset}
-                    setSelected={setSelectedAsset}
-                  />
                 </div>
               </div>
             </div>

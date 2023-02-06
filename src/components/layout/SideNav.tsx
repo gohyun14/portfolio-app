@@ -1,7 +1,7 @@
 import {
   ChartBarIcon,
-  HomeIcon,
   ListBulletIcon,
+  CurrencyDollarIcon,
 } from "@heroicons/react/24/outline";
 import { AnimatePresence } from "framer-motion";
 import { type Session } from "next-auth";
@@ -12,8 +12,8 @@ import { useState } from "react";
 import SignOutModal from "../UI/SignOutModal";
 
 const navigation = [
-  { name: "Dashboard", icon: HomeIcon, href: "/", current: true },
-  { name: "Portfolio", icon: ChartBarIcon, href: "/portfolio", current: false },
+  { name: "Portfolio", icon: ChartBarIcon, href: "/", current: true },
+  { name: "Assets", icon: CurrencyDollarIcon, href: "/assets", current: false },
   {
     name: "Transactions",
     icon: ListBulletIcon,

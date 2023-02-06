@@ -1,20 +1,18 @@
-import { Fragment, useEffect, useState } from "react";
 import { Combobox, Transition } from "@headlessui/react";
 import { CheckIcon, ChevronUpDownIcon } from "@heroicons/react/20/solid";
 import { useQuery } from "@tanstack/react-query";
-import { useDebounce } from "usehooks-ts";
-import { type SearchAssetType } from "../portfolio/AddAssetModal";
 import axios from "axios";
-
-type AutocompleteAssetProps = {
-  selected: SearchAssetType;
-  setSelected: (asset: SearchAssetType) => void;
-};
+import { Fragment, useEffect, useState } from "react";
+import { useDebounce } from "usehooks-ts";
+import { type SearchAssetType } from "../assets/AddAssetModal";
+import { ControllerRenderProps } from "react-hook-form";
 
 const AutocompleteAsset = ({
-  selected,
-  setSelected,
-}: AutocompleteAssetProps) => {
+  onChange,
+  onBlur,
+  value,
+  name,
+}: ControllerRenderProps) => {
   const [query, setQuery] = useState<string>("");
   const debouncedQuery = useDebounce<string>(query, 500);
 
@@ -39,21 +37,27 @@ const AutocompleteAsset = ({
     refetchOnWindowFocus: false,
   });
 
-  // useEffect(() => {}, [debouncedQuery]);
+  useEffect(() => {
+    if (debouncedQuery !== "") {
+      refetchQuery().catch((err) => console.log(err));
+    }
+  }, [debouncedQuery, refetchQuery]);
 
   console.log(queryData);
 
   return (
-    <div className="fixed top-16 w-72">
-      <Combobox value={selected} onChange={setSelected}>
-        <div className="relative mt-1">
-          <div className="relative w-full cursor-default overflow-hidden rounded-lg bg-white text-left shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-teal-300 sm:text-sm">
+    <div className="">
+      <Combobox value={value as SearchAssetType} onChange={onChange}>
+        <div className="relative w-full">
+          <div className="relative w-full cursor-default overflow-hidden rounded-md text-left shadow-sm">
             <Combobox.Input
-              className="w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus:ring-0"
+              as="input"
+              type="text"
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
               displayValue={(asset: SearchAssetType) => asset.symbol}
               onChange={(event) => setQuery(event.target.value)}
             />
-            <Combobox.Button className="absolute inset-y-0 right-0 flex items-center pr-2">
+            <Combobox.Button className="absolute inset-y-0 right-0 mt-1 flex items-center pr-2">
               <ChevronUpDownIcon
                 className="h-5 w-5 text-gray-400"
                 aria-hidden="true"
@@ -67,7 +71,7 @@ const AutocompleteAsset = ({
             leaveTo="opacity-0"
             afterLeave={() => setQuery("")}
           >
-            <Combobox.Options className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+            <Combobox.Options className="absolute z-10 mt-1 max-h-52 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
               {queryData?.length === 0 && query !== "" ? (
                 <div className="relative cursor-default select-none py-2 px-4 text-gray-700">
                   Nothing found.
@@ -75,7 +79,7 @@ const AutocompleteAsset = ({
               ) : (
                 queryData?.map((asset) => (
                   <Combobox.Option
-                    key={asset.symbol}
+                    key={asset.symbol + asset.name}
                     className={({ active }) =>
                       `relative cursor-default select-none py-2 pl-10 pr-4 ${
                         active ? "bg-teal-600 text-white" : "text-gray-900"
