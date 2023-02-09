@@ -1,9 +1,11 @@
-import { useState, useEffect } from "react";
-import { useForm, Controller } from "react-hook-form";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AnimatePresence, motion } from "framer-motion";
+import { useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { z } from "zod";
+import { useSession } from "next-auth/react";
 
+import { api } from "@/utils/api";
 import Modal from "@/components/UI/Modal";
 import AutocompleteAsset from "../UI/AutocompleteAsset";
 
@@ -11,13 +13,13 @@ const FormSchema = z.object({
   assetType: z.enum(["STOCK", "CRYPTO"], {
     invalid_type_error: "Asset type is required.",
   }),
-  // assetId: z
-  //   .string({ invalid_type_error: "Name is required." })
-  //   .min(1, { message: "Name is required." }),
-  assetId: z.object({
-    symbol: z.string({ invalid_type_error: "Asset is required." }),
-    name: z.string({ invalid_type_error: "Asset is required." }),
-  }),
+  assetId: z.object(
+    {
+      symbol: z.string({ invalid_type_error: "Asset is required." }),
+      name: z.string({ invalid_type_error: "Asset is required." }),
+    },
+    { required_error: "Asset is required." }
+  ),
   amount: z
     .number({
       invalid_type_error: "Amount is required.",
@@ -38,9 +40,14 @@ export type FormSchemaType = {
 
 type AddAssetModalProps = {
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  refetchAssets: () => void;
 };
 
-const AddAssetModal = ({ setOpen }: AddAssetModalProps) => {
+const AddAssetModal = ({ setOpen, refetchAssets }: AddAssetModalProps) => {
+  const { data: sessionData } = useSession();
+
+  const createAssetMutation = api.portfolioAsset.createAsset.useMutation();
+
   const {
     register,
     handleSubmit,
@@ -56,11 +63,23 @@ const AddAssetModal = ({ setOpen }: AddAssetModalProps) => {
     amount: undefined,
   });
 
-  console.log(formData);
-
   const onSubmit = (data: FormSchemaType) => {
     setFormData(data);
-    console.log(data);
+    createAssetMutation.mutate(
+      {
+        userId: sessionData?.user?.id as string,
+        assetSymbol: data.assetId.symbol,
+        assetName: data.assetId.name,
+        amount: data.amount as number,
+        type: data.assetType as "STOCK" | "CRYPTO",
+      },
+      {
+        onSuccess: (data) => {
+          refetchAssets();
+          setOpen(false);
+        },
+      }
+    );
   };
 
   return (
@@ -96,7 +115,7 @@ const AddAssetModal = ({ setOpen }: AddAssetModalProps) => {
                       id="asset-type"
                       type="radio"
                       value="STOCK"
-                      className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                      className="h-4 w-4 border-gray-300 text-teal-600 focus:ring-teal-500"
                       disabled
                       {...register("assetType", { required: true })}
                     />
@@ -112,7 +131,7 @@ const AddAssetModal = ({ setOpen }: AddAssetModalProps) => {
                       id="asset-type"
                       type="radio"
                       value="CRYPTO"
-                      className="h-4 w-4 border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                      className="h-4 w-4 border-gray-300 text-teal-600 focus:ring-teal-500"
                       {...register("assetType", { required: true })}
                     />
                     <label
@@ -160,7 +179,9 @@ const AddAssetModal = ({ setOpen }: AddAssetModalProps) => {
                     <Controller
                       control={control}
                       name="assetId"
-                      render={({ field }) => <AutocompleteAsset {...field} />}
+                      render={({ field: { onChange, value } }) => (
+                        <AutocompleteAsset onChange={onChange} value={value} />
+                      )}
                     />
                     <AnimatePresence>
                       {errors.assetId && (
@@ -191,7 +212,7 @@ const AddAssetModal = ({ setOpen }: AddAssetModalProps) => {
                     >
                       Amount
                       <p className=" text-sm font-normal text-gray-500">
-                        Asset quantity (not usd).
+                        Asset quantity.
                       </p>
                     </label>
                     <input
@@ -202,7 +223,7 @@ const AddAssetModal = ({ setOpen }: AddAssetModalProps) => {
                         required: true,
                         valueAsNumber: true,
                       })}
-                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                      className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"
                     />
                     <AnimatePresence>
                       {errors.amount && (
@@ -234,13 +255,14 @@ const AddAssetModal = ({ setOpen }: AddAssetModalProps) => {
         <div className="flex justify-end">
           <button
             type="button"
-            className="rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+            className="rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
+            onClick={() => setOpen(false)}
           >
             Cancel
           </button>
           <button
             type="submit"
-            className="ml-3 inline-flex justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:bg-indigo-800"
+            className="ml-3 inline-flex justify-center rounded-md border border-transparent bg-teal-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 active:bg-teal-800"
           >
             Save
           </button>

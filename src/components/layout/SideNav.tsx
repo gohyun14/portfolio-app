@@ -13,7 +13,12 @@ import SignOutModal from "../UI/SignOutModal";
 
 const navigation = [
   { name: "Portfolio", icon: ChartBarIcon, href: "/", current: true },
-  { name: "Assets", icon: CurrencyDollarIcon, href: "/assets", current: false },
+  {
+    name: "Assets",
+    icon: CurrencyDollarIcon,
+    href: "/assets?sort=asset&order=asc",
+    current: false,
+  },
   {
     name: "Transactions",
     icon: ListBulletIcon,
@@ -81,7 +86,7 @@ const SideNav = ({ user }: SideNavProps) => {
                   alt=""
                 />
               </div>
-              <div className="ml-3">
+              <div className="ml-3 text-left">
                 <p className="text-sm font-medium text-white">{user?.name}</p>
                 <p className="text-xs font-medium text-gray-300 group-hover:text-gray-200">
                   Sign out

@@ -5,14 +5,13 @@ import axios from "axios";
 import { Fragment, useEffect, useState } from "react";
 import { useDebounce } from "usehooks-ts";
 import { type SearchAssetType } from "../assets/AddAssetModal";
-import { ControllerRenderProps } from "react-hook-form";
 
-const AutocompleteAsset = ({
-  onChange,
-  onBlur,
-  value,
-  name,
-}: ControllerRenderProps) => {
+type AutocompleteAssetProps = {
+  onChange: (...event: any[]) => void;
+  value: SearchAssetType;
+};
+
+const AutocompleteAsset = ({ onChange, value }: AutocompleteAssetProps) => {
   const [query, setQuery] = useState<string>("");
   const debouncedQuery = useDebounce<string>(query, 500);
 
@@ -28,10 +27,12 @@ const AutocompleteAsset = ({
         `https://api.coingecko.com/api/v3/search?query=${debouncedQuery}`
       );
       // eslint-disable-next-line
-      return data.coins.map((asset: { symbol: string; name: string }) => ({
-        symbol: asset.symbol,
-        name: asset.name,
-      })) as SearchAssetType[];
+      return data.coins.map(
+        (asset: { symbol: string; api_symbol: string }) => ({
+          symbol: asset.symbol,
+          name: asset.api_symbol,
+        })
+      ) as SearchAssetType[];
     },
     enabled: debouncedQuery !== "",
     refetchOnWindowFocus: false,
@@ -43,27 +44,23 @@ const AutocompleteAsset = ({
     }
   }, [debouncedQuery, refetchQuery]);
 
-  console.log(queryData);
-
   return (
     <div className="">
-      <Combobox value={value as SearchAssetType} onChange={onChange}>
+      <Combobox value={value} onChange={onChange}>
         <div className="relative w-full">
-          <div className="relative w-full cursor-default overflow-hidden rounded-md text-left shadow-sm">
-            <Combobox.Input
-              as="input"
-              type="text"
-              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-              displayValue={(asset: SearchAssetType) => asset.symbol}
-              onChange={(event) => setQuery(event.target.value)}
+          <Combobox.Input
+            as="input"
+            type="text"
+            className="mt-1 block w-full rounded-md border border-gray-300 text-gray-900 shadow-sm focus:border-teal-500 focus:ring-teal-500 sm:text-sm"
+            displayValue={(asset: SearchAssetType) => asset.symbol}
+            onChange={(event) => setQuery(event.target.value)}
+          />
+          <Combobox.Button className="absolute inset-y-0 right-0 flex items-center pr-2">
+            <ChevronUpDownIcon
+              className="h-5 w-5 text-gray-400"
+              aria-hidden="true"
             />
-            <Combobox.Button className="absolute inset-y-0 right-0 mt-1 flex items-center pr-2">
-              <ChevronUpDownIcon
-                className="h-5 w-5 text-gray-400"
-                aria-hidden="true"
-              />
-            </Combobox.Button>
-          </div>
+          </Combobox.Button>
           <Transition
             as={Fragment}
             leave="transition ease-in duration-100"
@@ -94,6 +91,7 @@ const AutocompleteAsset = ({
                             selected ? "font-medium" : "font-normal"
                           }`}
                         >
+                          {/* TODO: split name on - and add space and capitalize */}
                           {asset.name} ({asset.symbol})
                         </span>
                         {selected ? (

@@ -5,14 +5,9 @@ import { AnimatePresence } from "framer-motion";
 
 import { api } from "../utils/api";
 import AddAssetModal from "@/components/assets/AddAssetModal";
+import AssetTable from "@/components/assets/AssetTable";
 
 const Assets: NextPage = () => {
-  // const hello = api.example.hello.useQuery(
-  //   { text: "from tRPC" },
-  //   { refetchOnWindowFocus: false }
-  // );
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
   return (
     <>
       <Head>
@@ -20,13 +15,9 @@ const Assets: NextPage = () => {
         <meta name="description" content="Your Assers" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main className="flex min-h-screen flex-col items-center justify-center">
-        No portfolio yet, but you can create one!
-        <button onClick={() => setIsModalOpen(true)}>click me!</button>
+      <main className="min-h-screen mx-auto">
+        <AssetTable />
       </main>
-      <AnimatePresence>
-        {isModalOpen && <AddAssetModal setOpen={setIsModalOpen} />}
-      </AnimatePresence>
     </>
   );
 };
