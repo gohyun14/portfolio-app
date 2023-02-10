@@ -110,7 +110,7 @@ const AssetTable = () => {
           <LayoutGroup>
             <motion.ul
               layout
-              className="max-h-[80vh] divide-y divide-gray-300 overflow-y-scroll rounded-b-md text-left"
+              className="max-h-[80vh] divide-y divide-gray-300 overflow-y-auto rounded-b-md text-left"
             >
               <AnimatePresence>
                 {sortedAssetData?.map((asset, i) => (
