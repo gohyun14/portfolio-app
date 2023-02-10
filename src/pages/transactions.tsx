@@ -7,7 +7,7 @@ import { useState } from "react";
 
 import AssetTable from "@/components/assets/AssetTable";
 
-const Assets: NextPage = () => {
+const Transactions: NextPage = () => {
   const { data: sessionData } = useSession();
 
   const [showModal, setShowModal] = useState(false);
@@ -21,7 +21,7 @@ const Assets: NextPage = () => {
       </Head>
       <main className="mx-auto min-h-screen">
         {sessionData ? (
-          <AssetTable />
+          "Coming soon!"
         ) : (
           <div className="flex min-h-screen items-center">
             <button
@@ -41,4 +41,4 @@ const Assets: NextPage = () => {
   );
 };
 
-export default Assets;
+export default Transactions;

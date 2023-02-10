@@ -136,6 +136,7 @@ const AssetTable = () => {
           <AddAssetModal
             setOpen={setIsModalOpen}
             refetchAssets={() => void refetchAssetData()}
+            assetList={assetsData?.map((asset) => asset.assetName)}
           />
         )}
       </AnimatePresence>

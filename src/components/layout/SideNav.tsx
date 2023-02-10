@@ -8,8 +8,9 @@ import { type Session } from "next-auth";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
+import { signOut } from "next-auth/react";
 
-import SignOutModal from "../UI/SignOutModal";
+import WarningModal from "../UI/WarningModal";
 
 const navigation = [
   { name: "Portfolio", icon: ChartBarIcon, href: "/", current: true },
@@ -73,31 +74,46 @@ const SideNav = ({ user }: SideNavProps) => {
             ))}
           </nav>
         </div>
-        <div className="flex flex-shrink-0 bg-gray-700 p-4">
-          <button
-            onClick={() => setModalOpen(true)}
-            className="group block w-full flex-shrink-0"
-          >
-            <div className="flex items-center">
-              <div>
-                <img
-                  className="inline-block h-9 w-9 rounded-full"
-                  src={user?.image || ""}
-                  alt=""
-                />
+        {user && (
+          <div className="flex flex-shrink-0 bg-gray-700 p-4">
+            <button
+              onClick={() => setModalOpen(true)}
+              className="group block w-full flex-shrink-0"
+            >
+              <div className="flex items-center">
+                <div>
+                  <img
+                    className="inline-block h-9 w-9 rounded-full"
+                    src={user?.image || ""}
+                    alt=""
+                  />
+                </div>
+                <div className="ml-3 text-left">
+                  <p className="text-sm font-medium text-white">{user?.name}</p>
+                  <p className="text-xs font-medium text-gray-300 group-hover:text-gray-200">
+                    Sign out
+                  </p>
+                </div>
               </div>
-              <div className="ml-3 text-left">
-                <p className="text-sm font-medium text-white">{user?.name}</p>
-                <p className="text-xs font-medium text-gray-300 group-hover:text-gray-200">
-                  Sign out
-                </p>
-              </div>
-            </div>
-          </button>
-        </div>
+            </button>
+          </div>
+        )}
       </div>
       <AnimatePresence>
-        {modalOpen && <SignOutModal setOpen={setModalOpen} />}
+        {modalOpen && (
+          <WarningModal
+            setOpen={setModalOpen}
+            title="Sign out"
+            message="Are you sure you want to sign out?"
+            labelCancel="Cancel"
+            labelSubmit="Sign out"
+            onCancel={() => setModalOpen(false)}
+            onSubmit={() => {
+              setModalOpen(false);
+              void signOut();
+            }}
+          />
+        )}
       </AnimatePresence>
     </>
   );

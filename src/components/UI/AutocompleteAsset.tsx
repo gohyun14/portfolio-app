@@ -9,9 +9,14 @@ import { type SearchAssetType } from "../assets/AddAssetModal";
 type AutocompleteAssetProps = {
   onChange: (...event: any[]) => void;
   value: SearchAssetType;
+  assetList: string[] | undefined;
 };
 
-const AutocompleteAsset = ({ onChange, value }: AutocompleteAssetProps) => {
+const AutocompleteAsset = ({
+  onChange,
+  value,
+  assetList,
+}: AutocompleteAssetProps) => {
   const [query, setQuery] = useState<string>("");
   const debouncedQuery = useDebounce<string>(query, 500);
 
@@ -27,12 +32,14 @@ const AutocompleteAsset = ({ onChange, value }: AutocompleteAssetProps) => {
         `https://api.coingecko.com/api/v3/search?query=${debouncedQuery}`
       );
       // eslint-disable-next-line
-      return data.coins.map(
-        (asset: { symbol: string; api_symbol: string }) => ({
+      return data.coins
+        .map((asset: { symbol: string; api_symbol: string }) => ({
           symbol: asset.symbol,
           name: asset.api_symbol,
-        })
-      ) as SearchAssetType[];
+        }))
+        .filter(
+          (asset: SearchAssetType) => !assetList?.includes(asset.name)
+        ) as SearchAssetType[];
     },
     enabled: debouncedQuery !== "",
     refetchOnWindowFocus: false,
@@ -68,7 +75,7 @@ const AutocompleteAsset = ({ onChange, value }: AutocompleteAssetProps) => {
             leaveTo="opacity-0"
             afterLeave={() => setQuery("")}
           >
-            <Combobox.Options className="absolute z-10 mt-1 max-h-52 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
+            <Combobox.Options className="fixed z-10 mt-1 max-h-52 w-min overflow-y-scroll rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
               {queryData?.length === 0 && query !== "" ? (
                 <div className="relative cursor-default select-none py-2 px-4 text-gray-700">
                   Nothing found.
@@ -78,7 +85,7 @@ const AutocompleteAsset = ({ onChange, value }: AutocompleteAssetProps) => {
                   <Combobox.Option
                     key={asset.symbol + asset.name}
                     className={({ active }) =>
-                      `relative cursor-default select-none py-2 pl-10 pr-4 ${
+                      `relative cursor-default select-none py-2 pl-4 pr-4 ${
                         active ? "bg-teal-600 text-white" : "text-gray-900"
                       }`
                     }
@@ -91,8 +98,10 @@ const AutocompleteAsset = ({ onChange, value }: AutocompleteAssetProps) => {
                             selected ? "font-medium" : "font-normal"
                           }`}
                         >
-                          {/* TODO: split name on - and add space and capitalize */}
-                          {asset.name} ({asset.symbol})
+                          <span className="capitalize">
+                            {asset.name.split("-").join(" ")}
+                          </span>{" "}
+                          ({asset.symbol})
                         </span>
                         {selected ? (
                           <span

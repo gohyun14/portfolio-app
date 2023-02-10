@@ -15,8 +15,12 @@ const FormSchema = z.object({
   }),
   assetId: z.object(
     {
-      symbol: z.string({ invalid_type_error: "Asset is required." }),
-      name: z.string({ invalid_type_error: "Asset is required." }),
+      symbol: z
+        .string({ invalid_type_error: "Asset is required." })
+        .min(1, `Asset is required.`),
+      name: z
+        .string({ invalid_type_error: "Asset is required." })
+        .min(1, `Asset is required.`),
     },
     { required_error: "Asset is required." }
   ),
@@ -41,9 +45,14 @@ export type FormSchemaType = {
 type AddAssetModalProps = {
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
   refetchAssets: () => void;
+  assetList: string[] | undefined;
 };
 
-const AddAssetModal = ({ setOpen, refetchAssets }: AddAssetModalProps) => {
+const AddAssetModal = ({
+  setOpen,
+  refetchAssets,
+  assetList,
+}: AddAssetModalProps) => {
   const { data: sessionData } = useSession();
 
   const createAssetMutation = api.portfolioAsset.createAsset.useMutation();
@@ -55,16 +64,21 @@ const AddAssetModal = ({ setOpen, refetchAssets }: AddAssetModalProps) => {
     control,
   } = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
+    defaultValues: {
+      assetType: "",
+      assetId: { symbol: "", name: "" },
+      amount: undefined,
+    },
   });
 
-  const [formData, setFormData] = useState<FormSchemaType>({
-    assetType: "",
-    assetId: { symbol: "", name: "" },
-    amount: undefined,
-  });
+  // const [formData, setFormData] = useState<FormSchemaType>({
+  //   assetType: "",
+  //   assetId: { symbol: "", name: "" },
+  //   amount: undefined,
+  // });
 
   const onSubmit = (data: FormSchemaType) => {
-    setFormData(data);
+    // setFormData(data);
     createAssetMutation.mutate(
       {
         userId: sessionData?.user?.id as string,
@@ -74,7 +88,7 @@ const AddAssetModal = ({ setOpen, refetchAssets }: AddAssetModalProps) => {
         type: data.assetType as "STOCK" | "CRYPTO",
       },
       {
-        onSuccess: (data) => {
+        onSuccess: () => {
           refetchAssets();
           setOpen(false);
         },
@@ -115,12 +129,12 @@ const AddAssetModal = ({ setOpen, refetchAssets }: AddAssetModalProps) => {
                       id="asset-type"
                       type="radio"
                       value="STOCK"
-                      className="h-4 w-4 border-gray-300 text-teal-600 focus:ring-teal-500"
+                      className="disabled: h-4 w-4 border-gray-300 text-teal-600 focus:ring-teal-500 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400"
                       disabled
                       {...register("assetType", { required: true })}
                     />
                     <label
-                      htmlFor="push-email"
+                      htmlFor="asset-type"
                       className="ml-3 block text-sm font-medium text-gray-700"
                     >
                       Stock
@@ -135,7 +149,7 @@ const AddAssetModal = ({ setOpen, refetchAssets }: AddAssetModalProps) => {
                       {...register("assetType", { required: true })}
                     />
                     <label
-                      htmlFor="push-nothing"
+                      htmlFor="asset-type"
                       className="ml-3 block text-sm font-medium text-gray-700"
                     >
                       Crypto
@@ -180,7 +194,11 @@ const AddAssetModal = ({ setOpen, refetchAssets }: AddAssetModalProps) => {
                       control={control}
                       name="assetId"
                       render={({ field: { onChange, value } }) => (
-                        <AutocompleteAsset onChange={onChange} value={value} />
+                        <AutocompleteAsset
+                          onChange={onChange}
+                          value={value}
+                          assetList={assetList}
+                        />
                       )}
                     />
                     <AnimatePresence>
@@ -199,7 +217,7 @@ const AddAssetModal = ({ setOpen, refetchAssets }: AddAssetModalProps) => {
                           }}
                           className="mt-[2px] text-xs text-red-600"
                         >
-                          {errors.assetId.message}
+                          Asset is required.
                         </motion.div>
                       )}
                     </AnimatePresence>
@@ -218,7 +236,7 @@ const AddAssetModal = ({ setOpen, refetchAssets }: AddAssetModalProps) => {
                     <input
                       type="text"
                       id="amount"
-                      defaultValue={formData.amount}
+                      // defaultValue={formData.amount}
                       {...register("amount", {
                         required: true,
                         valueAsNumber: true,

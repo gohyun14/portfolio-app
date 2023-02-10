@@ -69,23 +69,23 @@ const AssetTableRow = ({
     refetchOnWindowFocus: false,
   });
 
-  // const { data: chartDataLlama, isLoading: isChartDataLlamaLoading } = useQuery(
-  //   {
-  //     queryKey: ["getChartData", symbol, type],
-  //     queryFn: async () => {
-  //       // eslint-disable-next-line
-  //       const { data } = await axios.get(
-  //         `https://coins.llama.fi/chart/coingecko:${name.toLowerCase()}?start=${Date.now().toString()}&span=24&period=1H&searchWidth=1M`
-  //       );
-  //       // eslint-disable-next-line
-  //       return data.coins[`coingecko:${name.toLowerCase()}`]?.prices as {
-  //         timestamp: number;
-  //         price: number;
-  //       }[];
-  //     },
-  //     refetchOnWindowFocus: false,
-  //   }
-  // );
+  const { data: chartDataLlama, isLoading: isChartDataLlamaLoading } = useQuery(
+    {
+      queryKey: ["getChartData", symbol, type],
+      queryFn: async () => {
+        // eslint-disable-next-line
+        const { data } = await axios.get(
+          `https://coins.llama.fi/chart/coingecko:${name.toLowerCase()}?start=${Date.now().toString()}&span=24&period=1H&searchWidth=1M`
+        );
+        // eslint-disable-next-line
+        return data.coins[`coingecko:${name.toLowerCase()}`]?.prices as {
+          timestamp: number;
+          price: number;
+        }[];
+      },
+      refetchOnWindowFocus: false,
+    }
+  );
 
   useEffect(() => {
     if (assetDataDexscreener) {
@@ -169,11 +169,14 @@ const AssetTableRow = ({
           </div>
         </div>
       )}
-      {/* <AnimatePresence>
-        {isExpanded && <AssetExpanded chartData={chartDataLlama} />}
-      </AnimatePresence> */}
       <AnimatePresence>
-        {isExpanded && <AssetExpanded id={id} refetchAssets={refetchAssets} />}
+        {isExpanded && (
+          <AssetExpanded
+            id={id}
+            chartData={chartDataLlama}
+            refetchAssets={refetchAssets}
+          />
+        )}
       </AnimatePresence>
     </motion.li>
   );
