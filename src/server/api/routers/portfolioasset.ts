@@ -21,6 +21,15 @@ export const portfolioAssetRouter = createTRPCRouter({
           assetName: input.assetName,
           amount: input.amount,
           type: input.type,
+          AssetTransaction: {
+            create: {
+              type: "INITIAL",
+              assetSymbol: input.assetSymbol,
+              assetName: input.assetName,
+              amount: input.amount,
+              userId: input.userId,
+            },
+          },
         },
       });
     }),
