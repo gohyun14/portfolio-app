@@ -145,7 +145,7 @@ const AssetTableRow = ({
             </div>
             <ChevronUpIcon
               className={`h-5 w-5 stroke-2 text-teal-600 ${
-                isExpanded ? "rotate-180" : "rotate-0"
+                !isExpanded ? "rotate-180" : "rotate-0"
               } rounded-full p-[2px] transition duration-[150ms] ease-in-out group-hover:bg-teal-800 group-hover:bg-opacity-70 group-hover:text-white`}
             />
           </div>
