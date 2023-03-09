@@ -1,54 +1,46 @@
-import { useState, useRef, useEffect } from "react";
-import { useSession } from "next-auth/react";
-import { AnimatePresence, motion, LayoutGroup } from "framer-motion";
-import { useRouter } from "next/router";
+import {
+  type ChartDataType,
+  type DexScreenerType
+} from "@/utils/axios-requests";
 import { type PortfolioAsset } from "@prisma/client";
+import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
+import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
 
-import { api } from "@/utils/api";
-import AssetTableRow from "./AssetTableRow";
 import AddAssetModal from "@/components/assets/AddAssetModal";
 import AssetTableHeader from "./AssetTableHeader";
+import AssetTableRow from "./AssetTableRow";
 
-const AssetTable = () => {
+type AssetTableProps = {
+  assetsData: PortfolioAsset[] | undefined;
+  chartData: ChartDataType[] | undefined;
+  dexScreenerData: DexScreenerType[] | undefined;
+  refetchAssets: () => void;
+};
+
+const AssetTable = ({
+  assetsData,
+  chartData,
+  dexScreenerData,
+  refetchAssets,
+}: AssetTableProps) => {
   const { query } = useRouter();
-  const { data: sessionData } = useSession();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [sortedAssetData, setsortedAssetData] = useState<
     PortfolioAsset[] | undefined
   >(undefined);
 
-  const {
-    data: assetsData,
-    isLoading: isAssetsDataLoading,
-    refetch: refetchAssetData,
-  } = api.portfolioAsset.getAllAssetsByUserId.useQuery(
-    { userId: sessionData?.user?.id as string },
-    {
-      refetchOnWindowFocus: false,
-      enabled: !!sessionData,
-    }
-  );
-
-  const assetDexscreenerMapRef = useRef(
-    new Map<string, { price: number; change: number; value: number }>()
-  );
-
-  const addAssetToDexscreenerMap = (
-    symbol: string,
-    price: number,
-    change: number,
-    value: number
-  ) => {
-    assetDexscreenerMapRef.current.set(symbol, { price, change, value });
-  };
-
   useEffect(() => {
-    if (assetsData && query.sort && query.order) {
+    if (assetsData && dexScreenerData && query.sort && query.order) {
       setsortedAssetData([
         ...assetsData.sort((a, b) => {
-          const aEntry = assetDexscreenerMapRef.current.get(a.assetSymbol);
-          const bEntry = assetDexscreenerMapRef.current.get(b.assetSymbol);
+          const aEntry = dexScreenerData?.find(
+            (asset) => asset.symbol === a.assetSymbol
+          );
+          const bEntry = dexScreenerData?.find(
+            (asset) => asset.symbol === b.assetSymbol
+          );
 
           if (query.sort === "asset") {
             return query.order === "asc"
@@ -61,33 +53,37 @@ const AssetTable = () => {
           } else if (query.sort === "price") {
             if (aEntry && bEntry)
               return query.order === "asc"
-                ? aEntry.price - bEntry.price
-                : bEntry.price - aEntry.price;
+                ? aEntry.data.priceUsd.localeCompare(bEntry.data.priceUsd)
+                : bEntry.data.priceUsd.localeCompare(aEntry.data.priceUsd);
             else return 0;
           } else if (query.sort === "value") {
             if (aEntry && bEntry)
               return query.order === "asc"
-                ? aEntry.value - bEntry.value
-                : bEntry.value - aEntry.value;
+                ? a.amount * parseFloat(aEntry.data.priceUsd) -
+                    b.amount * parseFloat(bEntry.data.priceUsd)
+                : b.amount * parseFloat(bEntry.data.priceUsd) -
+                    a.amount * parseFloat(aEntry.data.priceUsd);
             else return 0;
           } else if (query.sort === "change") {
             if (aEntry && bEntry)
               return query.order === "asc"
-                ? aEntry.change - bEntry.change
-                : bEntry.change - aEntry.change;
+                ? aEntry.data.priceChange.h24 - bEntry.data.priceChange.h24
+                : bEntry.data.priceChange.h24 - aEntry.data.priceChange.h24;
             else return 0;
           } else {
             return 0;
           }
         }),
       ]);
+    } else {
+      setsortedAssetData(assetsData);
     }
-  }, [query, assetsData, assetDexscreenerMapRef]);
+  }, [query, assetsData, dexScreenerData]);
 
   return (
     <>
-      <div>
-        <div className="sm:flex sm:items-center">
+      <div className="mt-10">
+        <div className="mb-5 sm:flex sm:items-center">
           <div className="sm:flex-auto">
             <h1 className="text-xl font-semibold text-gray-900">Assets</h1>
             <p className="mt-2 text-sm text-gray-700">
@@ -110,7 +106,7 @@ const AssetTable = () => {
           <LayoutGroup>
             <motion.ul
               layout
-              className="max-h-[80vh] divide-y divide-gray-300 overflow-y-auto rounded-b-md text-left"
+              className="max-h-[77vh] divide-y divide-gray-300 overflow-y-auto rounded-b-md text-left"
             >
               <AnimatePresence>
                 {sortedAssetData?.map((asset, i) => (
@@ -119,11 +115,14 @@ const AssetTable = () => {
                     index={i}
                     id={asset.id}
                     symbol={asset.assetSymbol}
-                    name={asset.assetName}
                     amount={asset.amount}
-                    type={asset.type}
-                    addToMap={addAssetToDexscreenerMap}
-                    refetchAssets={() => void refetchAssetData()}
+                    chartData={chartData?.find(
+                      (item) => item.symbol === asset.assetSymbol
+                    )}
+                    dexScreenerData={dexScreenerData?.find(
+                      (item) => item.symbol === asset.assetSymbol
+                    )}
+                    refetchAssets={refetchAssets}
                   />
                 ))}
               </AnimatePresence>
@@ -135,7 +134,7 @@ const AssetTable = () => {
         {isModalOpen && (
           <AddAssetModal
             setOpen={setIsModalOpen}
-            refetchAssets={() => void refetchAssetData()}
+            refetchAssets={refetchAssets}
             assetList={assetsData?.map((asset) => asset.assetName)}
           />
         )}

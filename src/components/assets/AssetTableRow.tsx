@@ -1,30 +1,20 @@
-import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
-import { AnimatePresence, motion } from "framer-motion";
+import {
+  type ChartDataType,
+  type DexScreenerType,
+} from "@/utils/axios-requests";
 import { ChevronUpIcon } from "@heroicons/react/24/outline";
+import { AnimatePresence, motion } from "framer-motion";
+import { useState } from "react";
 
 import AssetExpanded from "./AssetExpanded";
-
-type assetDexscreenerType = {
-  baseToken: { symbol: string };
-  priceChange: { h24: number };
-  priceUsd: string;
-};
 
 type AssetTableRowProps = {
   index: number;
   id: string;
   symbol: string;
-  name: string;
   amount: number;
-  type: "CRYPTO" | "STOCK";
-  addToMap: (
-    symbol: string,
-    price: number,
-    change: number,
-    value: number
-  ) => void;
+  chartData: ChartDataType | undefined;
+  dexScreenerData: DexScreenerType | undefined;
   refetchAssets: () => void;
 };
 
@@ -32,69 +22,12 @@ const AssetTableRow = ({
   index,
   id,
   symbol,
-  name,
   amount,
-  type,
-  addToMap,
+  chartData,
+  dexScreenerData,
   refetchAssets,
 }: AssetTableRowProps) => {
-  const [price, setPrice] = useState(0);
-  const [change, setChange] = useState(0);
-  const [value, setValue] = useState(0);
   const [isExpanded, setIsExpanded] = useState(false);
-
-  const {
-    data: assetDataDexscreener,
-    isLoading: isAssetDataDexscreenerLoading,
-  } = useQuery({
-    queryKey: ["getAssetData", symbol, type],
-    queryFn: async () => {
-      // eslint-disable-next-line
-      const { data } = await axios.get(
-        `https://api.dexscreener.com/latest/dex/search?q=${symbol}`
-      );
-      // eslint-disable-next-line
-      return data.pairs
-        .map((pair: assetDexscreenerType) => {
-          return {
-            baseToken: pair.baseToken,
-            priceChange: pair.priceChange,
-            priceUsd: pair.priceUsd,
-          };
-        })
-        .find(
-          (pair: assetDexscreenerType) => pair.baseToken.symbol === symbol
-        ) as assetDexscreenerType;
-    },
-    refetchOnWindowFocus: false,
-  });
-
-  const { data: chartDataLlama, isLoading: isChartDataLlamaLoading } = useQuery(
-    {
-      queryKey: ["getChartData", symbol, type],
-      queryFn: async () => {
-        // eslint-disable-next-line
-        const { data } = await axios.get(
-          `https://coins.llama.fi/chart/coingecko:${name.toLowerCase()}?start=${Date.now().toString()}&span=24&period=1H&searchWidth=1M`
-        );
-        // eslint-disable-next-line
-        return data.coins[`coingecko:${name.toLowerCase()}`]?.prices as {
-          timestamp: number;
-          price: number;
-        }[];
-      },
-      refetchOnWindowFocus: false,
-    }
-  );
-
-  useEffect(() => {
-    if (assetDataDexscreener) {
-      setPrice(parseFloat(assetDataDexscreener.priceUsd));
-      setChange(assetDataDexscreener.priceChange.h24);
-      setValue(amount * parseFloat(assetDataDexscreener.priceUsd));
-      addToMap(assetDataDexscreener.baseToken.symbol, price, change, value);
-    }
-  }, [assetDataDexscreener, addToMap, amount, price, change, value]);
 
   return (
     <motion.li
@@ -114,7 +47,7 @@ const AssetTableRow = ({
       custom={index}
       className="group flex flex-col bg-white last:rounded-b-md hover:cursor-pointer"
     >
-      {!isAssetDataDexscreenerLoading && assetDataDexscreener ? (
+      {dexScreenerData ? (
         <div
           onClick={() => setIsExpanded((prev) => !prev)}
           className="flex flex-row"
@@ -127,21 +60,22 @@ const AssetTableRow = ({
           </div>
           <div className="basis-1/5 py-4 pl-4 pr-3 text-sm font-medium text-gray-600 sm:pl-6">
             <span className="text-xs font-semibold text-teal-600">$</span>{" "}
-            {price.toFixed(2)}
+            {parseFloat(dexScreenerData.data.priceUsd).toFixed(2)}
           </div>
           <div className="basis-1/5 py-4 pl-4 pr-3 text-sm font-medium text-gray-600 sm:pl-6">
             <span className="text-xs font-semibold text-teal-600">$</span>{" "}
-            {value.toFixed(2)}
+            {(amount * parseFloat(dexScreenerData.data.priceUsd)).toFixed(2)}
           </div>
           <div className="flex basis-1/5 justify-between py-4 pl-4 pr-3 text-sm font-medium sm:pl-6">
             <div
               className={`max-w-fit rounded-full ${
-                change >= 0
+                dexScreenerData.data.priceChange.h24 >= 0
                   ? "bg-green-300 px-2 text-green-800"
                   : "bg-red-300 px-2 text-red-800"
               }`}
             >
-              <span>{change}</span> <span className="text-xs">%</span>
+              <span>{dexScreenerData.data.priceChange.h24}</span>{" "}
+              <span className="text-xs">%</span>
             </div>
             <ChevronUpIcon
               className={`h-5 w-5 stroke-2 text-teal-600 ${
@@ -173,7 +107,7 @@ const AssetTableRow = ({
         {isExpanded && (
           <AssetExpanded
             id={id}
-            chartData={chartDataLlama}
+            chartData={chartData?.prices}
             refetchAssets={refetchAssets}
           />
         )}

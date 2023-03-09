@@ -2,6 +2,7 @@ import {
   ChartBarIcon,
   ListBulletIcon,
   CurrencyDollarIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { AnimatePresence } from "framer-motion";
 import { type Session } from "next-auth";
@@ -13,17 +14,25 @@ import { signOut } from "next-auth/react";
 import WarningModal from "../UI/WarningModal";
 
 const navigation = [
-  { name: "Portfolio", icon: ChartBarIcon, href: "/", current: true },
+  {
+    name: "Portfolio",
+    icon: ChartBarIcon,
+    href: "/?sidebar=open",
+    path: "/",
+    current: true,
+  },
   {
     name: "Assets",
     icon: CurrencyDollarIcon,
-    href: "/assets?sort=asset&order=asc",
+    href: "/assets?sidebar=open&sort=asset&order=asc",
+    path: "/assets",
     current: false,
   },
   {
     name: "Transactions",
     icon: ListBulletIcon,
-    href: "/transactions",
+    href: "/transactions?sidebar=open",
+    path: "/transactions",
     current: false,
   },
 ];
@@ -45,8 +54,17 @@ const SideNav = ({ user }: SideNavProps) => {
     <>
       <div className="flex h-full min-h-0 w-56 flex-1 flex-col bg-gray-800">
         <div className="flex flex-1 flex-col overflow-y-auto pt-5 pb-4">
+          <XMarkIcon
+            className="absolute left-2 top-2 h-9 w-9 rounded-full bg-gray-800 p-1 text-gray-300 hover:cursor-pointer hover:bg-gray-700 hover:text-white"
+            onClick={() =>
+              void router.push({
+                pathname: router.pathname,
+                query: { ...router.query, sidebar: "closed" },
+              })
+            }
+          />
           <nav
-            className="mt-8 flex-1 space-y-2 bg-gray-800 px-2"
+            className="mt-11 flex-1 space-y-2 bg-gray-800 px-2"
             aria-label="Sidebar"
           >
             {navigation.map((item) => (
@@ -54,7 +72,7 @@ const SideNav = ({ user }: SideNavProps) => {
                 key={item.name}
                 href={item.href}
                 className={classNames(
-                  router.asPath === item.href
+                  router.pathname === item.path
                     ? "bg-gray-900 text-white"
                     : "text-gray-300 hover:bg-gray-700 hover:text-white",
                   "group flex items-center rounded-md px-2 py-2 text-base font-medium"
@@ -62,7 +80,7 @@ const SideNav = ({ user }: SideNavProps) => {
               >
                 <item.icon
                   className={classNames(
-                    router.asPath === item.href
+                    router.pathname === item.path
                       ? "text-gray-300"
                       : "text-gray-400 group-hover:text-gray-300",
                     "mr-3 h-7 w-7 flex-shrink-0"

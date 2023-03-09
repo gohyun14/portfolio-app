@@ -1,71 +1,105 @@
+import SignInModal from "@/components/UI/SignInModal";
+import { getChartData, getDexScreenerData } from "@/utils/axios-requests";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence } from "framer-motion";
 import { type NextPage } from "next";
-import { signOut, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import Head from "next/head";
-import { useState } from "react";
+import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
 
-import SignInModal from "@/components/UI/SignInModal";
-import { api } from "../utils/api";
+import PortfolioOverview from "@/components/portfolio/PortfolioOverview";
+import AssetSpotlight from "@/components/portfolio/AssetSpotlight";
+import { api } from "@/utils/api";
 
 const Home: NextPage = () => {
-  const hello = api.example.hello.useQuery(
-    { text: "from tRPC" },
-    { refetchOnWindowFocus: false }
+  const { data: sessionData } = useSession();
+  const router = useRouter();
+
+  // set default sorting if no sort order is set
+  useEffect(() => {
+    if (router && router.query.sort === undefined) {
+      void router.push({
+        pathname: router.pathname,
+        query: { ...router.query, sort: "asset", order: "asc" },
+      });
+    }
+  });
+
+  const [showModal, setShowModal] = useState(false);
+
+  const queryClient = useQueryClient();
+  const queryKey = api.portfolioAsset.getAllAssetsByUserId.getQueryKey(
+    {
+      userId: sessionData?.user?.id as string,
+    },
+    "query"
   );
+  const assetQueryData = queryClient.getQueryData(queryKey);
+
+  // query for assets from trpc
+  const {
+    data: assetsData,
+    isLoading: isAssetsDataLoading,
+    refetch: refetchAssetData,
+    isFetching: isAssetsDataFetching,
+  } = api.portfolioAsset.getAllAssetsByUserId.useQuery(
+    { userId: sessionData?.user?.id as string },
+    {
+      refetchOnWindowFocus: false,
+      enabled: !!sessionData && assetQueryData === undefined,
+    }
+  );
+
+  // query for external chart data
+  const { data: chartData } = useQuery({
+    queryKey: ["getChartData"],
+    queryFn: () => getChartData(assetsData),
+    refetchOnWindowFocus: false,
+    enabled: !!assetsData && assetsData.length > 0,
+  });
+
+  //query for external dexscreener data
+  const { data: dexScreenerData } = useQuery({
+    queryKey: ["getDexScreenData"],
+    queryFn: () => getDexScreenerData(assetsData),
+    refetchOnWindowFocus: false,
+    enabled: !!assetsData && assetsData.length > 0,
+  });
 
   return (
     <>
       <Head>
-        <title>Home</title>
-        <meta name="description" content="Home Page" />
+        <title>Assets</title>
+        <meta name="description" content="Your Assers" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main className="flex min-h-screen flex-col items-center justify-center">
-        <div className="container flex flex-col items-center justify-center gap-12 px-4 py-16 ">
-          <div className="flex flex-col items-center gap-2">
-            <p className="text-2xl text-gray-700">
-              {hello.data ? hello.data.greeting : "Loading tRPC query..."}
-            </p>
-            <AuthShowcase />
+      <main className="mx-auto">
+        {sessionData ? (
+          <div>
+            <PortfolioOverview
+              assetsData={assetsData}
+              dexScreenerData={dexScreenerData}
+            />
+            <AssetSpotlight />
           </div>
-        </div>
+        ) : (
+          <div className="flex min-h-screen items-center">
+            <button
+              type="button"
+              className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+              onClick={() => setShowModal(true)}
+            >
+              Sign in
+            </button>
+          </div>
+        )}
       </main>
-    </>
-  );
-};
-
-export default Home;
-
-const AuthShowcase: React.FC = () => {
-  const [showModal, setShowModal] = useState(false);
-
-  const { data: sessionData } = useSession();
-
-  const { data: secretMessage } = api.example.getSecretMessage.useQuery(
-    undefined, // no input
-    { enabled: sessionData?.user !== undefined, refetchOnWindowFocus: false }
-  );
-
-  return (
-    <>
-      <div className="flex flex-col items-center justify-center gap-4">
-        <p className="text-center text-2xl text-gray-700">
-          {sessionData && <span>Logged in as {sessionData.user?.name}</span>}
-          {secretMessage && <span> - {secretMessage}</span>}
-        </p>
-        <button
-          type="button"
-          className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-          onClick={
-            sessionData ? () => void signOut() : () => setShowModal(true)
-          }
-        >
-          {sessionData ? "Sign out" : "Sign in"}
-        </button>
-      </div>
       <AnimatePresence>
         {showModal && <SignInModal setOpen={setShowModal} />}
       </AnimatePresence>
     </>
   );
 };
+
+export default Home;
