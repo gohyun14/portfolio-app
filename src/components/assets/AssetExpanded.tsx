@@ -1,13 +1,11 @@
-import { useState } from "react";
 import { api } from "@/utils/api";
-import { motion, AnimatePresence } from "framer-motion";
-import dynamic from "next/dynamic";
+import { AnimatePresence, motion } from "framer-motion";
+import { useState } from "react";
 
 import WarningModal from "../UI/WarningModal";
+import AssetLineChart from "./AssetLineChart";
 
-const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
-
-type AssetExpandedPropsType = {
+type AssetExpandedProps = {
   id: string;
   chartData:
     | {
@@ -22,50 +20,10 @@ const AssetExpanded = ({
   id,
   chartData,
   refetchAssets,
-}: AssetExpandedPropsType) => {
+}: AssetExpandedProps) => {
   const deleteAssetMutation = api.portfolioAsset.deleteAssetById.useMutation();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const chartSettings = {
-    options: {
-      chart: {
-        id: "basic-bar",
-        type: "area" as const,
-        toolbar: {
-          show: false,
-        },
-        zoom: {
-          enabled: false,
-        },
-      },
-      colors: ["#0D9488"],
-      xaxis: {
-        //eslint-disable-next-line
-        type: "datetime" as const,
-      },
-      tooltip: {
-        x: {
-          show: true,
-          format: "dd MMM HH:mm:ss",
-          formatter: undefined,
-        },
-      },
-    },
-    series: [
-      {
-        name: "Price ($)",
-        type: "area",
-        //eslint-disable-next-line
-        data: chartData
-          ? (chartData?.map((data) => [
-              data.timestamp * 1000,
-              data.price.toFixed(4),
-            ]) as any)
-          : [],
-      },
-    ],
-  };
 
   return (
     <>
@@ -84,13 +42,7 @@ const AssetExpanded = ({
         exit="closed"
         className="px-2"
       >
-        <Chart
-          options={chartSettings.options}
-          series={chartSettings.series}
-          type="area"
-          width={"100%"}
-          height={300}
-        />
+        <AssetLineChart chartData={chartData} />
         <div className="mb-3 mr-2 text-right">
           <button
             type="button"
