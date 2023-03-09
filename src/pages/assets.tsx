@@ -64,9 +64,6 @@ const Assets: NextPage = () => {
     queryFn: () => getDexScreenerData(assetsData),
     refetchOnWindowFocus: false,
     enabled: !!assetsData && assetsData.length > 0,
-    onSuccess: () => {
-      console.log("dexScreenerData", dexScreenerData);
-    },
   });
 
   return (

@@ -1,5 +1,6 @@
 import SignInModal from "@/components/UI/SignInModal";
 import { getChartData, getDexScreenerData } from "@/utils/axios-requests";
+import { type PortfolioAsset } from "@prisma/client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence } from "framer-motion";
 import { type NextPage } from "next";
@@ -8,8 +9,8 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
-import PortfolioOverview from "@/components/portfolio/PortfolioOverview";
 import AssetSpotlight from "@/components/portfolio/AssetSpotlight";
+import PortfolioOverview from "@/components/portfolio/PortfolioOverview";
 import { api } from "@/utils/api";
 
 const Home: NextPage = () => {
@@ -81,7 +82,11 @@ const Home: NextPage = () => {
               assetsData={assetsData}
               dexScreenerData={dexScreenerData}
             />
-            <AssetSpotlight />
+            <AssetSpotlight
+              assets={assetsData}
+              dexScreenerData={dexScreenerData}
+              chartData={chartData}
+            />
           </div>
         ) : (
           <div className="flex min-h-screen items-center">
