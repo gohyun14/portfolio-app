@@ -25,7 +25,6 @@ export const portfolioAssetRouter = createTRPCRouter({
             create: {
               type: "INITIAL",
               assetSymbol: input.assetSymbol,
-              assetName: input.assetName,
               amount: input.amount,
               userId: input.userId,
             },
@@ -40,6 +39,9 @@ export const portfolioAssetRouter = createTRPCRouter({
         where: {
           userId: input.userId,
         },
+        orderBy: {
+          assetSymbol: "asc",
+        },
       });
     }),
   deleteAssetById: protectedProcedure
@@ -48,6 +50,18 @@ export const portfolioAssetRouter = createTRPCRouter({
       return ctx.prisma.portfolioAsset.delete({
         where: {
           id: input.id,
+        },
+      });
+    }),
+  updateAssetAmountById: protectedProcedure
+    .input(z.object({ assetId: z.string(), amount: z.number() }))
+    .mutation(({ input, ctx }) => {
+      return ctx.prisma.portfolioAsset.update({
+        where: {
+          id: input.assetId,
+        },
+        data: {
+          amount: input.amount,
         },
       });
     }),

@@ -7,6 +7,7 @@ import { useSession } from "next-auth/react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 
 import AssetTable from "@/components/assets/AssetTable";
 import { api } from "@/utils/api";
@@ -20,21 +21,12 @@ const Assets: NextPage = () => {
     if (router && router.query.sort === undefined) {
       void router.push({
         pathname: router.pathname,
-        query: { ...router.query, sort: "none", order: "asc" },
+        query: { ...router.query, sort: "asset", order: "asc" },
       });
     }
   });
 
   const [showModal, setShowModal] = useState(false);
-
-  const queryClient = useQueryClient();
-  const queryKey = api.portfolioAsset.getAllAssetsByUserId.getQueryKey(
-    {
-      userId: sessionData?.user?.id as string,
-    },
-    "query"
-  );
-  const assetQueryData = queryClient.getQueryData(queryKey);
 
   // query for assets from trpc
   const {
@@ -46,7 +38,7 @@ const Assets: NextPage = () => {
     { userId: sessionData?.user?.id as string },
     {
       refetchOnWindowFocus: false,
-      enabled: !!sessionData && assetQueryData === undefined,
+      enabled: !!sessionData,
     }
   );
 
@@ -70,7 +62,7 @@ const Assets: NextPage = () => {
     <>
       <Head>
         <title>Assets</title>
-        <meta name="description" content="Your Assers" />
+        <meta name="description" content="Your Assets" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="mx-auto">
@@ -81,19 +73,32 @@ const Assets: NextPage = () => {
             dexScreenerData={dexScreenerData}
             refetchAssets={() =>
               void refetchAssetData().then(() =>
-                refetchChartData().then(() => refetchDexScreenerData())
+                setTimeout(() => {
+                  void refetchChartData();
+                  void refetchDexScreenerData();
+                }, 1000)
               )
             }
           />
         ) : (
           <div className="flex min-h-screen items-center">
-            <button
+            <motion.button
               type="button"
               className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
               onClick={() => setShowModal(true)}
+              whileTap={{
+                scale: 0.95,
+                borderRadius: "8px",
+              }}
+              transition={{
+                type: "spring",
+                stiffness: 150,
+                damping: 8,
+                mass: 0.5,
+              }}
             >
               Sign in
-            </button>
+            </motion.button>
           </div>
         )}
       </main>

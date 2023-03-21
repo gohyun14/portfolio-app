@@ -8,8 +8,10 @@ import { useSession } from "next-auth/react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
 import AssetSpotlight from "@/components/portfolio/AssetSpotlight";
+import RecentTransactions from "@/components/portfolio/RecentTransactions";
 import PortfolioOverview from "@/components/portfolio/PortfolioOverview";
 import { api } from "@/utils/api";
 
@@ -19,24 +21,15 @@ const Home: NextPage = () => {
 
   // set default sorting if no sort order is set
   useEffect(() => {
-    if (router && router.query.sort === undefined) {
+    if (router && router.query.sidebar === undefined) {
       void router.push({
         pathname: router.pathname,
-        query: { ...router.query, sort: "asset", order: "asc" },
+        query: { ...router.query, sidebar: "open" },
       });
     }
   });
 
   const [showModal, setShowModal] = useState(false);
-
-  const queryClient = useQueryClient();
-  const queryKey = api.portfolioAsset.getAllAssetsByUserId.getQueryKey(
-    {
-      userId: sessionData?.user?.id as string,
-    },
-    "query"
-  );
-  const assetQueryData = queryClient.getQueryData(queryKey);
 
   // query for assets from trpc
   const {
@@ -48,7 +41,20 @@ const Home: NextPage = () => {
     { userId: sessionData?.user?.id as string },
     {
       refetchOnWindowFocus: false,
-      enabled: !!sessionData && assetQueryData === undefined,
+      enabled: !!sessionData,
+    }
+  );
+
+  // query for transactions from trpc
+  const {
+    data: transactionsData,
+    isLoading: isTransactionsDataLoading,
+    refetch: refetchTransactionsData,
+  } = api.assetTransaction.getAllTransactionsByUserId.useQuery(
+    { userId: sessionData?.user?.id as string },
+    {
+      refetchOnWindowFocus: false,
+      enabled: !!sessionData,
     }
   );
 
@@ -75,18 +81,47 @@ const Home: NextPage = () => {
         <meta name="description" content="Your Assers" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main className="mx-auto">
+      <main className="mx-auto max-h-screen overflow-y-auto">
         {sessionData ? (
           <div>
-            <PortfolioOverview
-              assetsData={assetsData}
-              dexScreenerData={dexScreenerData}
-            />
-            <AssetSpotlight
-              assets={assetsData}
-              dexScreenerData={dexScreenerData}
-              chartData={chartData}
-            />
+            {assetsData && assetsData.length > 0 ? (
+              <div>
+                <PortfolioOverview
+                  assetsData={assetsData}
+                  dexScreenerData={dexScreenerData}
+                />
+                {/* <AssetSpotlight
+                  assets={assetsData}
+                  dexScreenerData={dexScreenerData}
+                  chartData={chartData}
+                /> */}
+                {transactionsData && transactionsData.length > 0 && (
+                  <RecentTransactions
+                    transactions={transactionsData.slice(0, 5)}
+                  />
+                )}
+              </div>
+            ) : (
+              <div className="mt-12 text-center">
+                <h1 className="text-3xl font-medium text-gray-800 md:text-5xl">
+                  Your portfolio is worth... Nothing!
+                </h1>
+                <h2 className="mt-3 text-xl font-medium text-gray-700 md:text-3xl">
+                  Go to the{" "}
+                  <Link
+                    href={`/assets?sort=asset&order=asc&sidebar=${
+                      router.query.sidebar
+                        ? (router.query.sidebar as string)
+                        : "open"
+                    }`}
+                    className="text-teal-600 underline hover:cursor-pointer hover:text-teal-700"
+                  >
+                    Assets Page
+                  </Link>{" "}
+                  start your portfolio!
+                </h2>
+              </div>
+            )}
           </div>
         ) : (
           <div className="flex min-h-screen items-center">

@@ -16,12 +16,12 @@ export const getChartData = async (
   const coins = assetsData
     ?.map((asset) => `coingecko:${asset.assetName.toLowerCase()}`)
     .join(",");
+  const link = `https://coins.llama.fi/chart/${coins as string}?end=${(
+    Date.now() / 1000
+  ).toFixed(0)}&span=24&period=1H&searchWidth=1H`;
+  // console.log(link);
   // eslint-disable-next-line
-  const { data } = await axios.get(
-    `https://coins.llama.fi/chart/${
-      coins as string
-    }?start=${Date.now().toString()}&span=24&period=1H&searchWidth=1H`
-  );
+  const { data } = await axios.get(link);
   return assetsData?.map((asset) => {
     return {
       symbol: asset.assetSymbol,

@@ -38,22 +38,42 @@ const MainLayout = ({ children }: MainLayoutProps) => {
       )}
       <AnimatePresence>
         {router.query.sidebar === "open" && (
-          <motion.div
-            initial={{ x: -224, width: 0 }}
-            animate={{
-              x: 0,
-              width: "auto",
-              transition: { duration: 0.4, ease: "easeOut" },
-            }}
-            exit={{
-              x: -224,
-              width: 0,
-              transition: { duration: 0.4, ease: "easeOut" },
-            }}
-            className="h-screen"
-          >
-            <SideNav user={sessionData?.user} />
-          </motion.div>
+          <>
+            <motion.div
+              onClick={() =>
+                void router.push({
+                  pathname: router.pathname,
+                  query: { ...router.query, sidebar: "closed" },
+                })
+              }
+              initial={{ opacity: 0 }}
+              animate={{
+                opacity: 1,
+                transition: { duration: 0.1, ease: "easeIn" },
+              }}
+              exit={{
+                opacity: 0,
+                transition: { duration: 0.1, ease: "easeOut" },
+              }}
+              className="absolute h-full w-full bg-black bg-opacity-20 sm:hidden"
+            ></motion.div>
+            <motion.div
+              initial={{ x: -224, width: 0 }}
+              animate={{
+                x: 0,
+                width: "auto",
+                transition: { duration: 0.4, ease: "easeOut" },
+              }}
+              exit={{
+                x: -224,
+                width: 0,
+                transition: { duration: 0.4, ease: "easeOut" },
+              }}
+              className="h-screen"
+            >
+              <SideNav user={sessionData?.user} />
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
       {/* )} */}

@@ -43,7 +43,7 @@ const AssetSpotlight = ({
   }, [selectedAsset, dexScreenerData]);
 
   return (
-    <section className="mt-8 rounded-md border border-zinc-300 bg-zinc-100 p-2 text-center text-gray-600 shadow-lg">
+    <section className="my-8 rounded-md border border-zinc-300 bg-zinc-100 p-2 text-center text-gray-600 shadow-lg">
       <h3 className="mb-3 text-center text-xl">Asset Spotlight</h3>
       <Dropdown
         options={assets}

@@ -53,7 +53,6 @@ model AssetTransaction {
     date             DateTime        @default(now())
     type             TransactionType
     assetSymbol      String
-    assetName        String
     amount           Float
     userId           String
     user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)

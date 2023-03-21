@@ -1,29 +1,21 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { type PortfolioAsset } from "@prisma/client";
 import { AnimatePresence, motion } from "framer-motion";
-import { useState } from "react";
+import { useSession } from "next-auth/react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
-import { useSession } from "next-auth/react";
 
-import { api } from "@/utils/api";
 import Modal from "@/components/UI/Modal";
-import AutocompleteAsset from "../UI/AutocompleteAsset";
+import { api } from "@/utils/api";
+import AssetDropdown from "./AssetDropdown";
 
 const FormSchema = z.object({
-  assetType: z.enum(["STOCK", "CRYPTO"], {
-    invalid_type_error: "Asset type is required.",
+  transactionType: z.enum(["BUY", "SELL"], {
+    invalid_type_error: "Transaction type is required.",
   }),
-  assetId: z.object(
-    {
-      symbol: z
-        .string({ invalid_type_error: "Asset is required." })
-        .min(1, `Asset is required.`),
-      name: z
-        .string({ invalid_type_error: "Asset is required." })
-        .min(1, `Asset is required.`),
-    },
-    { required_error: "Asset is required." }
-  ),
+  assetSymbol: z
+    .string({ invalid_type_error: "Asset is required." })
+    .min(1, { message: `Asset is required.` }),
   amount: z
     .number({
       invalid_type_error: "Amount is required.",
@@ -31,69 +23,84 @@ const FormSchema = z.object({
     .gt(0, { message: "Must be greater than 0." }),
 });
 
-export type SearchAssetType = {
-  symbol: string;
-  name: string;
-};
-
 export type FormSchemaType = {
-  assetType: "STOCK" | "CRYPTO" | "";
-  assetId: SearchAssetType;
+  transactionType: "BUY" | "SELL" | "";
+  assetSymbol: string;
   amount: number | undefined;
 };
 
-type AddAssetModalProps = {
+type AddTransactionModalProps = {
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  refetchTransactions: () => void;
   refetchAssets: () => void;
-  assetList: string[] | undefined;
+  assetList: PortfolioAsset[] | undefined;
 };
 
-const AddAssetModal = ({
+const AddTransactionModal = ({
   setOpen,
+  refetchTransactions,
   refetchAssets,
   assetList,
-}: AddAssetModalProps) => {
+}: AddTransactionModalProps) => {
   const { data: sessionData } = useSession();
 
-  const createAssetMutation = api.portfolioAsset.createAsset.useMutation();
+  const createTransactionMutation =
+    api.assetTransaction.createTransaction.useMutation();
+
+  const updateAssetAmountMutation =
+    api.portfolioAsset.updateAssetAmountById.useMutation();
 
   const {
     register,
     handleSubmit,
     formState: { errors },
     control,
+    setError,
   } = useForm<FormSchemaType>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      assetType: "",
-      assetId: { symbol: "", name: "" },
+      transactionType: "",
+      assetSymbol: "",
       amount: undefined,
     },
   });
 
-  // const [formData, setFormData] = useState<FormSchemaType>({
-  //   assetType: "",
-  //   assetId: { symbol: "", name: "" },
-  //   amount: undefined,
-  // });
-
   const onSubmit = (data: FormSchemaType) => {
-    // setFormData(data);
-    createAssetMutation.mutate(
-      {
-        userId: sessionData?.user?.id as string,
-        assetSymbol: data.assetId.symbol,
-        assetName: data.assetId.name,
-        amount: data.amount as number,
-        type: data.assetType as "STOCK" | "CRYPTO",
-      },
-      {
-        onSuccess: () => {
-          refetchAssets();
-          setOpen(false);
-        },
-      }
+    const asset = assetList?.find(
+      (asset) => asset.assetSymbol === data.assetSymbol
     );
+    if (data.amount && asset && asset.amount) {
+      if (data.transactionType === "SELL" && data.amount >= asset?.amount) {
+        setError("amount", {
+          type: "manual",
+          message: "Cannot sell more than you own.",
+        });
+      } else {
+        createTransactionMutation.mutate(
+          {
+            userId: sessionData?.user?.id as string,
+            symbol: data.assetSymbol,
+            amount: data.amount,
+            type: data.transactionType as "BUY" | "SELL",
+            portfolioAssetId: asset.id,
+          },
+          {
+            onSuccess: () => {
+              updateAssetAmountMutation.mutate({
+                assetId: asset.id,
+                amount:
+                  data.transactionType === "BUY"
+                    ? asset.amount + (data.amount as number)
+                    : asset.amount - (data.amount as number),
+              });
+              refetchAssets();
+              setOpen(false);
+              refetchTransactions();
+            },
+          }
+        );
+      }
+    }
   };
 
   return (
@@ -109,55 +116,54 @@ const AddAssetModal = ({
           <div className="md:grid md:grid-cols-3 md:gap-6">
             <div className="md:col-span-1">
               <h3 className="text-lg font-medium leading-6 text-gray-900">
-                Add Asset
+                Add Transaction
               </h3>
               <p className="mt-1 text-sm text-gray-500">
-                Add a new asset to your portfolio.
+                Add a new transaction you&apos;ve made.
               </p>
             </div>
             <div className="mt-5 space-y-6 md:col-span-2 md:mt-0">
               <fieldset>
                 <legend className="contents text-base font-medium text-gray-900">
-                  Asset type
+                  Transaction type
                 </legend>
                 <p className="text-sm text-gray-500">
-                  The type of the asset you want to add.
+                  The type of the transaction you made.
                 </p>
                 <div className="mt-4 space-y-4">
                   <div className="flex items-center">
                     <input
-                      id="asset-type"
+                      id="transaction-buy"
                       type="radio"
-                      value="STOCK"
-                      className="disabled: h-4 w-4 border-gray-300 text-teal-600 focus:ring-teal-500 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400"
-                      disabled
-                      {...register("assetType", { required: true })}
+                      value="BUY"
+                      className="h-4 w-4 border-gray-300 text-teal-600 focus:ring-teal-500"
+                      {...register("transactionType", { required: true })}
                     />
                     <label
-                      htmlFor="asset-type"
+                      htmlFor="transaction-buy"
                       className="ml-3 block text-sm font-medium text-gray-700"
                     >
-                      Stock
+                      Buy
                     </label>
                   </div>
                   <div className="flex items-center">
                     <input
-                      id="asset-type"
+                      id="transaction-sell"
                       type="radio"
-                      value="CRYPTO"
+                      value="SELL"
                       className="h-4 w-4 border-gray-300 text-teal-600 focus:ring-teal-500"
-                      {...register("assetType", { required: true })}
+                      {...register("transactionType", { required: true })}
                     />
                     <label
-                      htmlFor="asset-type"
+                      htmlFor="transaction-sell"
                       className="ml-3 block text-sm font-medium text-gray-700"
                     >
-                      Crypto
+                      Sell
                     </label>
                   </div>
                 </div>
                 <AnimatePresence>
-                  {errors.assetType && (
+                  {errors.transactionType && (
                     <motion.div
                       initial={{ height: 0, opacity: 0 }}
                       animate={{
@@ -172,7 +178,7 @@ const AddAssetModal = ({
                       }}
                       className="mt-[2px] text-xs text-red-600"
                     >
-                      {errors.assetType.message}
+                      {errors.transactionType.message}
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -185,24 +191,26 @@ const AddAssetModal = ({
                       htmlFor="first-name"
                       className="block text-base font-medium text-gray-700"
                     >
-                      Name
+                      Asset
                       <p className=" text-sm font-normal text-gray-500">
-                        The symbol/ticker of the asset.
+                        Asset transacted.
                       </p>
                     </label>
                     <Controller
                       control={control}
-                      name="assetId"
+                      name="assetSymbol"
                       render={({ field: { onChange, value } }) => (
-                        <AutocompleteAsset
+                        <AssetDropdown
                           onChange={onChange}
                           value={value}
-                          assetList={assetList}
+                          assetList={assetList?.map(
+                            (asset) => asset.assetSymbol
+                          )}
                         />
                       )}
                     />
                     <AnimatePresence>
-                      {errors.assetId && (
+                      {errors.assetSymbol && (
                         <motion.div
                           initial={{ height: 0, opacity: 0 }}
                           animate={{
@@ -217,7 +225,7 @@ const AddAssetModal = ({
                           }}
                           className="mt-[2px] text-xs text-red-600"
                         >
-                          Asset is required.
+                          {errors.assetSymbol.message}
                         </motion.div>
                       )}
                     </AnimatePresence>
@@ -230,7 +238,7 @@ const AddAssetModal = ({
                     >
                       Amount
                       <p className=" text-sm font-normal text-gray-500">
-                        Asset quantity.
+                        Amount transacted.
                       </p>
                     </label>
                     <input
@@ -271,43 +279,23 @@ const AddAssetModal = ({
         </div>
 
         <div className="flex justify-end">
-          <motion.button
+          <button
             type="button"
             className="rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
             onClick={() => setOpen(false)}
-            whileTap={{
-              scale: 0.95,
-              borderRadius: "8px",
-            }}
-            transition={{
-              type: "spring",
-              stiffness: 150,
-              damping: 8,
-              mass: 0.5,
-            }}
           >
             Cancel
-          </motion.button>
-          <motion.button
+          </button>
+          <button
             type="submit"
-            className="ml-3 inline-flex justify-center rounded-md border border-transparent bg-teal-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
-            whileTap={{
-              scale: 0.95,
-              borderRadius: "8px",
-            }}
-            transition={{
-              type: "spring",
-              stiffness: 150,
-              damping: 8,
-              mass: 0.5,
-            }}
+            className="ml-3 inline-flex justify-center rounded-md border border-transparent bg-teal-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 active:bg-teal-800"
           >
             Add
-          </motion.button>
+          </button>
         </div>
       </form>
     </Modal>
   );
 };
 
-export default AddAssetModal;
+export default AddTransactionModal;

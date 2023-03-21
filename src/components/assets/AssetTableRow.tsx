@@ -86,21 +86,11 @@ const AssetTableRow = ({
         </div>
       ) : (
         <div className="flex basis-full animate-pulse flex-row p-4">
-          <div className="basis-1/5 rounded-full">
-            <div className="h-2 w-2/3 rounded-full bg-teal-600 bg-opacity-40 py-3 pl-4 pr-3"></div>
-          </div>
-          <div className="basis-1/5 rounded-full">
-            <div className="h-2 w-2/3 rounded-full bg-teal-600 bg-opacity-40 py-3 pl-4 pr-3"></div>
-          </div>
-          <div className="basis-1/5 rounded-full">
-            <div className="h-2 w-2/3 rounded-full bg-teal-600 bg-opacity-40 py-3 pl-4 pr-3"></div>
-          </div>
-          <div className="basis-1/5 rounded-full">
-            <div className="h-2 w-2/3 rounded-full bg-teal-600 bg-opacity-40 py-3 pl-4 pr-3"></div>
-          </div>
-          <div className="basis-1/5 rounded-full">
-            <div className="h-2 w-2/3 rounded-full bg-teal-600 bg-opacity-40 py-3 pl-4 pr-3"></div>
-          </div>
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="basis-1/5 rounded-full">
+              <div className="h-2 w-2/3 rounded-full bg-teal-600 bg-opacity-40 py-3 pl-4 pr-3"></div>
+            </div>
+          ))}
         </div>
       )}
       <AnimatePresence>
