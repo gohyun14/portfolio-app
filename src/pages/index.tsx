@@ -19,24 +19,15 @@ const Home: NextPage = () => {
 
   // set default sorting if no sort order is set
   useEffect(() => {
-    if (router && router.query.sort === undefined) {
+    if (router && router.query.sidebar === undefined) {
       void router.push({
         pathname: router.pathname,
-        query: { ...router.query, sort: "asset", order: "asc" },
+        query: { ...router.query, sidebar: "open" },
       });
     }
   });
 
   const [showModal, setShowModal] = useState(false);
-
-  const queryClient = useQueryClient();
-  const queryKey = api.portfolioAsset.getAllAssetsByUserId.getQueryKey(
-    {
-      userId: sessionData?.user?.id as string,
-    },
-    "query"
-  );
-  const assetQueryData = queryClient.getQueryData(queryKey);
 
   // query for assets from trpc
   const {
@@ -48,7 +39,7 @@ const Home: NextPage = () => {
     { userId: sessionData?.user?.id as string },
     {
       refetchOnWindowFocus: false,
-      enabled: !!sessionData && assetQueryData === undefined,
+      enabled: !!sessionData,
     }
   );
 
@@ -75,7 +66,7 @@ const Home: NextPage = () => {
         <meta name="description" content="Your Assers" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main className="mx-auto">
+      <main className="mx-auto max-h-screen overflow-y-auto">
         {sessionData ? (
           <div>
             <PortfolioOverview

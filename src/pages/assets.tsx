@@ -20,21 +20,12 @@ const Assets: NextPage = () => {
     if (router && router.query.sort === undefined) {
       void router.push({
         pathname: router.pathname,
-        query: { ...router.query, sort: "none", order: "asc" },
+        query: { ...router.query, sort: "asset", order: "asc" },
       });
     }
   });
 
   const [showModal, setShowModal] = useState(false);
-
-  const queryClient = useQueryClient();
-  const queryKey = api.portfolioAsset.getAllAssetsByUserId.getQueryKey(
-    {
-      userId: sessionData?.user?.id as string,
-    },
-    "query"
-  );
-  const assetQueryData = queryClient.getQueryData(queryKey);
 
   // query for assets from trpc
   const {
@@ -46,7 +37,7 @@ const Assets: NextPage = () => {
     { userId: sessionData?.user?.id as string },
     {
       refetchOnWindowFocus: false,
-      enabled: !!sessionData && assetQueryData === undefined,
+      enabled: !!sessionData,
     }
   );
 
@@ -70,7 +61,7 @@ const Assets: NextPage = () => {
     <>
       <Head>
         <title>Assets</title>
-        <meta name="description" content="Your Assers" />
+        <meta name="description" content="Your Assets" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className="mx-auto">
