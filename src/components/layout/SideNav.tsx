@@ -4,7 +4,7 @@ import {
   CurrencyDollarIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
-import { AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { type Session } from "next-auth";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -52,7 +52,7 @@ const SideNav = ({ user }: SideNavProps) => {
 
   return (
     <>
-      <div className="flex h-full min-h-0 w-56 flex-1 flex-col bg-gray-800">
+      <div className="absolute flex h-full min-h-0 w-56 flex-1 flex-col bg-gray-800 sm:relative">
         <div className="flex flex-1 flex-col overflow-y-auto pt-5 pb-4">
           <XMarkIcon
             className="absolute left-2 top-2 h-9 w-9 rounded-full bg-gray-800 p-1 text-gray-300 hover:cursor-pointer hover:bg-gray-700 hover:text-white"

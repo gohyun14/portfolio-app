@@ -7,6 +7,7 @@ import { useSession } from "next-auth/react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 
 import AssetTable from "@/components/assets/AssetTable";
 import { api } from "@/utils/api";
@@ -72,19 +73,32 @@ const Assets: NextPage = () => {
             dexScreenerData={dexScreenerData}
             refetchAssets={() =>
               void refetchAssetData().then(() =>
-                refetchChartData().then(() => refetchDexScreenerData())
+                setTimeout(() => {
+                  void refetchChartData();
+                  void refetchDexScreenerData();
+                }, 1000)
               )
             }
           />
         ) : (
           <div className="flex min-h-screen items-center">
-            <button
+            <motion.button
               type="button"
               className="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
               onClick={() => setShowModal(true)}
+              whileTap={{
+                scale: 0.95,
+                borderRadius: "8px",
+              }}
+              transition={{
+                type: "spring",
+                stiffness: 150,
+                damping: 8,
+                mass: 0.5,
+              }}
             >
               Sign in
-            </button>
+            </motion.button>
           </div>
         )}
       </main>

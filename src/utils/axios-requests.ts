@@ -19,10 +19,9 @@ export const getChartData = async (
   const link = `https://coins.llama.fi/chart/${coins as string}?end=${(
     Date.now() / 1000
   ).toFixed(0)}&span=24&period=1H&searchWidth=1H`;
-  console.log(link);
+  // console.log(link);
   // eslint-disable-next-line
   const { data } = await axios.get(link);
-  console.log(data);
   return assetsData?.map((asset) => {
     return {
       symbol: asset.assetSymbol,

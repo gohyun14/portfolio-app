@@ -271,19 +271,39 @@ const AddAssetModal = ({
         </div>
 
         <div className="flex justify-end">
-          <button
+          <motion.button
             type="button"
             className="rounded-md border border-gray-300 bg-white py-2 px-4 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
             onClick={() => setOpen(false)}
+            whileTap={{
+              scale: 0.95,
+              borderRadius: "8px",
+            }}
+            transition={{
+              type: "spring",
+              stiffness: 150,
+              damping: 8,
+              mass: 0.5,
+            }}
           >
             Cancel
-          </button>
-          <button
+          </motion.button>
+          <motion.button
             type="submit"
-            className="ml-3 inline-flex justify-center rounded-md border border-transparent bg-teal-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 active:bg-teal-800"
+            className="ml-3 inline-flex justify-center rounded-md border border-transparent bg-teal-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2"
+            whileTap={{
+              scale: 0.95,
+              borderRadius: "8px",
+            }}
+            transition={{
+              type: "spring",
+              stiffness: 150,
+              damping: 8,
+              mass: 0.5,
+            }}
           >
             Add
-          </button>
+          </motion.button>
         </div>
       </form>
     </Modal>

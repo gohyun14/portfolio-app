@@ -93,6 +93,7 @@ const AddTransactionModal = ({
                     ? asset.amount + (data.amount as number)
                     : asset.amount - (data.amount as number),
               });
+              refetchAssets();
               setOpen(false);
               refetchTransactions();
             },

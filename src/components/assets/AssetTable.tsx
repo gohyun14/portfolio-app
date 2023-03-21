@@ -82,54 +82,92 @@ const AssetTable = ({
 
   return (
     <>
-      <div className="mt-10">
-        <div className="mb-5 sm:flex sm:items-center">
-          <div className="sm:flex-auto">
-            <h1 className="text-xl font-semibold text-gray-900">Assets</h1>
-            <p className="mt-2 text-sm text-gray-700">
-              A list of all the assets in your portfolio including their symbol,
-              amount, price and 24 hour price change.
-            </p>
+      {assetsData && assetsData.length > 0 ? (
+        <div className="mt-10">
+          <div className="mb-5 sm:flex sm:items-center">
+            <div className="sm:flex-auto">
+              <h1 className="text-xl font-semibold text-gray-900">Assets</h1>
+              <p className="mt-2 text-sm text-gray-700">
+                A list of all the assets in your portfolio including their
+                symbol, amount, price and 24 hour price change.
+              </p>
+            </div>
+            <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
+              <motion.button
+                type="button"
+                className="inline-flex items-center justify-center rounded-md border border-transparent bg-teal-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 active:bg-teal-800 sm:w-auto"
+                onClick={() => setIsModalOpen(true)}
+                whileTap={{
+                  scale: 0.95,
+                  borderRadius: "8px",
+                }}
+                transition={{
+                  type: "spring",
+                  stiffness: 150,
+                  damping: 8,
+                  mass: 0.5,
+                }}
+              >
+                Add asset
+              </motion.button>
+            </div>
           </div>
-          <div className="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
-            <button
-              type="button"
-              className="inline-flex items-center justify-center rounded-md border border-transparent bg-teal-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 active:bg-teal-800 sm:w-auto"
-              onClick={() => setIsModalOpen(true)}
-            >
-              Add asset
-            </button>
+          <div className="flex flex-col rounded-md border border-gray-300 shadow-md">
+            <AssetTableHeader />
+            <LayoutGroup>
+              <motion.ul
+                layout
+                className="max-h-[77vh] divide-y divide-gray-300 overflow-y-auto rounded-b-md text-left"
+              >
+                <AnimatePresence>
+                  {sortedAssetData?.map((asset, i) => (
+                    <AssetTableRow
+                      key={asset.id}
+                      index={i}
+                      id={asset.id}
+                      symbol={asset.assetSymbol}
+                      amount={asset.amount}
+                      chartData={chartData?.find(
+                        (item) => item.symbol === asset.assetSymbol
+                      )}
+                      dexScreenerData={dexScreenerData?.find(
+                        (item) => item.symbol === asset.assetSymbol
+                      )}
+                      refetchAssets={refetchAssets}
+                    />
+                  ))}
+                </AnimatePresence>
+              </motion.ul>
+            </LayoutGroup>
           </div>
         </div>
-        <div className="flex flex-col rounded-md border border-gray-300 shadow-md">
-          <AssetTableHeader />
-          <LayoutGroup>
-            <motion.ul
-              layout
-              className="max-h-[77vh] divide-y divide-gray-300 overflow-y-auto rounded-b-md text-left"
-            >
-              <AnimatePresence>
-                {sortedAssetData?.map((asset, i) => (
-                  <AssetTableRow
-                    key={asset.id}
-                    index={i}
-                    id={asset.id}
-                    symbol={asset.assetSymbol}
-                    amount={asset.amount}
-                    chartData={chartData?.find(
-                      (item) => item.symbol === asset.assetSymbol
-                    )}
-                    dexScreenerData={dexScreenerData?.find(
-                      (item) => item.symbol === asset.assetSymbol
-                    )}
-                    refetchAssets={refetchAssets}
-                  />
-                ))}
-              </AnimatePresence>
-            </motion.ul>
-          </LayoutGroup>
+      ) : (
+        <div className="mt-12 text-center">
+          <h1 className="text-3xl font-medium text-gray-800 md:text-5xl">
+            It looks like your portfolio is empty...
+          </h1>
+          <h2 className="mt-3 text-xl font-medium text-gray-700 md:text-3xl">
+            Add some assets to your portfolio to get started!
+          </h2>
+          <motion.button
+            type="button"
+            className="mt-3 inline-flex items-center justify-center rounded-md border border-transparent bg-teal-600 px-5 py-3 text-lg font-medium text-white shadow-md hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 sm:w-auto"
+            onClick={() => setIsModalOpen(true)}
+            whileTap={{
+              scale: 0.96,
+              borderRadius: "8px",
+            }}
+            transition={{
+              type: "spring",
+              stiffness: 150,
+              damping: 8,
+              mass: 0.5,
+            }}
+          >
+            Add an asset
+          </motion.button>
         </div>
-      </div>
+      )}
       <AnimatePresence>
         {isModalOpen && (
           <AddAssetModal
