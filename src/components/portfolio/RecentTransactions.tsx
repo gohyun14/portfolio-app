@@ -32,7 +32,7 @@ const RecentTransactions = ({ transactions }: RecentTransactionsProps) => {
                 <PlusIcon className="mr-2 h-5 w-5 rounded-full bg-green-500 p-0 text-green-700" />
               )}
               <p>
-                <span>Bought</span>{" "}
+                <span>{transaction.type === "SELL" ? "Sold" : "Bought"}</span>{" "}
                 <span className="font-semibold">{`${transaction.amount} ${transaction.assetSymbol}`}</span>{" "}
                 on{" "}
                 <span className="underline">
